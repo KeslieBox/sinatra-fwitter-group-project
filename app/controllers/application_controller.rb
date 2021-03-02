@@ -10,7 +10,7 @@ class ApplicationController < Sinatra::Base
   end
 
    def current_user
-        User.find_by(password_digest: session[:user_id])
+        User.find_by(id: session[:user_id])
     end
 
     def logged_in?
@@ -18,4 +18,8 @@ class ApplicationController < Sinatra::Base
         session.key?(:user_id)
     end
 
-end
+    def redirect_if_not_logged_in
+      redirect '/login' unless current_user
+    end
+
+end 

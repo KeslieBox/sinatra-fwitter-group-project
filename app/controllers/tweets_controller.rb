@@ -10,15 +10,16 @@ class TweetsController < ApplicationController
       end
     
       get '/tweets/new' do
-        if logged_in?
-          erb :'/tweets/create_tweet'
-        else
-        #   flash[:message] = "You must be logged in to tweet."
-          redirect :'/login'
-        end
+
+        redirect '/login' unless current_user
+
+        erb :'/tweets/create_tweet'
       end
     
       post '/tweets' do
+
+        redirect '/login' unless current_user
+
         if params[:content].empty?
         #   flash[:message] = "Your tweet is empty!"
           redirect :'/tweets/new'
@@ -26,35 +27,28 @@ class TweetsController < ApplicationController
           @tweet = Tweet.create(params)
           @tweet.user_id = session[:user_id]
           @tweet.save
-    
         #   flash[:message] = "Successfully tweeted!"
           redirect :"tweets/#{@tweet.id}"
         end
       end
     
       get '/tweets/:id' do
-        if logged_in?
-          @tweet = Tweet.find_by_id(params[:id])
-          erb :'/tweets/show_tweet'
-        else
-        #   flash[:message] = "You must be logged in to view tweets."
-          redirect :'/login'
-        end
+        redirect '/login' unless current_user
+
+        @tweet = Tweet.find_by_id(params[:id])
+        erb :'/tweets/show_tweet'
       end
     
       get '/tweets/:id/edit' do
-        if logged_in?
-          @tweet = Tweet.find(params[:id])
-          if @tweet && session[:user_id] == @tweet.user_id
-            erb :'/tweets/edit_tweet'
-          else
-            # flash[:message] = "You must be the tweet owner to edit."
-            redirect :'/tweets'
-          end
+        redirect '/login' unless current_user
+
+        @tweet = Tweet.find(params[:id])
+        if @tweet && session[:user_id] == @tweet.user_id
+        erb :'/tweets/edit_tweet'
         else
-        #   flash[:message] = "You must be logged in to edit tweets."
-          redirect :"/login"
-        end
+        # flash[:message] = "You must be the tweet owner to edit."
+        redirect :'/tweets'
+        end  
       end
     
       patch '/tweets/:id' do
@@ -76,7 +70,8 @@ class TweetsController < ApplicationController
     
       #DELETE TWEETS
         post '/tweets/:id/delete' do
-          if logged_in?
+            redirect '/login' unless current_user
+
             @tweet = Tweet.find(params[:id])
             if @tweet && @tweet.user_id == session[:user_id]
               @tweet.delete
@@ -86,10 +81,6 @@ class TweetsController < ApplicationController
             #   flash[:message] = "You do not have permission to delete this tweet."
               redirect :'/tweets'
             end
-          else
-            # flash[:message] = "You must be logged in to delete a tweet."
-            redirect :'users/login'
-          end
         end
 
 end
